@@ -1,41 +1,25 @@
 import React, {Component} from 'react';
 import {Table, Button} from 'react-bootstrap';
-import axios from 'axios';
+import {actionCreators} from '../../actions/index';
+import { connect } from 'react-redux';
 
 class Users extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            users: []
-        }
     }
 
     removeRecord(id) {
-        axios.delete(`http://localhost:3000/users/${id}`)
-            .then(() => {
-                axios.get("http://localhost:3000/users")
-                    .then(res => {
-                        this.setState({users: res.data})
-                    });
-            });
+        this.props.deleteUser(id);
     }
 
     addRecord() {
         let name = document.getElementById("name");
-        axios.post("http://localhost:3000/users", {"name": name.value}).then(() => {
-            name.value = "";
-            axios.get("http://localhost:3000/users")
-                .then(res => {
-                    this.setState({users: res.data})
-                });
-        })
+        this.props.addUser(name.value);
+        name.value="";
     }
 
     componentDidMount() {
-        axios.get("http://localhost:3000/users")
-            .then(res => {
-                this.setState({users: res.data})
-            })
+        this.props.getUsers();
     }
 
     render() {
@@ -51,7 +35,8 @@ class Users extends Component {
                     </thead>
                     <tbody>
                     {
-                        this.state.users.map((res, key) =>
+
+                        this.props.user.data.map((res, key) =>
                             <tr key={key}>
                                 <td>{res.id}</td>
                                 <td id="name_input">{res.name}</td>
@@ -69,4 +54,20 @@ class Users extends Component {
     }
 }
 
-export default Users;
+const mapStateToProps = (state) => {
+    return {
+        user: state.user
+    }
+};
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        getUsers: () => dispatch(actionCreators.getUsers()),
+        addUser: (name) => dispatch(actionCreators.addUsers(name)),
+        deleteUser: (id) => dispatch(actionCreators.deleteUser(id))
+    }
+}
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(Users)
